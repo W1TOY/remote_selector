@@ -34,9 +34,9 @@
 
 #include "driver/pulse_cnt.h"
 
-#define GPIO_PIN_RELAY 22
+#define GPIO_PIN_RELAY 23
 
-static const char *TAG = "remote_selector_1";
+static const char *TAG = "remote_selector_5";
 #include "wifipassword.h"   // define following two variables in the wifipassword.h
 //#define MY_ESP_WIFI_SSID      "mywifi_ssid"
 //#define MY_ESP_WIFI_PASS      "password_for_mywifi"
@@ -66,6 +66,7 @@ void setup_gpio_input(int pinnum)
 }
 void setup_gpio_output(int pinnum)
 {
+  gpio_reset_pin((gpio_num_t)pinnum);
   gpio_set_drive_capability((gpio_num_t)pinnum, GPIO_DRIVE_CAP_DEFAULT);
   gpio_set_direction((gpio_num_t)pinnum, GPIO_MODE_OUTPUT);
 }
@@ -165,13 +166,13 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
     case MQTT_EVENT_CONNECTED:
         ESP_LOGI(TAG, "MQTT_EVENT_CONNECTED");
 
-        esp_mqtt_client_subscribe(client, "remote_selector_1/A", 0);
-        esp_mqtt_client_subscribe(client, "remote_selector_1/B", 0);
-        esp_mqtt_client_subscribe(client, "remote_selector_1/selector_button", 0);
+        esp_mqtt_client_subscribe(client, "remote_selector_5/A", 0);
+        esp_mqtt_client_subscribe(client, "remote_selector_5/B", 0);
+        esp_mqtt_client_subscribe(client, "remote_selector_5/selector_button", 0);
 
-        esp_mqtt_client_publish(client, "remote_selector_1/A", "on", 0, 0, 0);
-        esp_mqtt_client_publish(client, "remote_selector_1/B", "off", 0, 0, 0);
-        esp_mqtt_client_publish(client,   "remote_selector_1/selected_Beacon", "off", 0, 0, 0);
+        esp_mqtt_client_publish(client, "remote_selector_5/A", "on", 0, 0, 0);
+        esp_mqtt_client_publish(client, "remote_selector_5/B", "off", 0, 0, 0);
+        esp_mqtt_client_publish(client,   "remote_selector_5/selected_Beacon", "off", 0, 0, 0);
 
         break;
 
@@ -182,31 +183,31 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
 
         if (event->topic_len < 1) break;
 
-        if ( strncmp(event->topic, "remote_selector_1/A", strlen("remote_selector_1/A")) == 0) {
+        if ( strncmp(event->topic, "remote_selector_5/A", strlen("remote_selector_5/A")) == 0) {
             if ((strncmp(event->data, "on", 2) == 0) && Antenna ==0)
             {
                 ESP_LOGI(TAG, "Antenna A is already selected");
-//                esp_mqtt_client_publish(client, "remote_selector_1/B", "off", 0, 0, 0);
+//                esp_mqtt_client_publish(client, "remote_selector_5/B", "off", 0, 0, 0);
             }
             else if ((strncmp(event->data, "on", 2) == 0) && Antenna ==1)
             {
                 Antenna = 0;
                 gpio_set_level(GPIO_PIN_RELAY, 0);
-                esp_mqtt_client_publish(client, "remote_selector_1/B", "off", 0, 0, 0);
+                esp_mqtt_client_publish(client, "remote_selector_5/B", "off", 0, 0, 0);
                 ESP_LOGI(TAG, "A is currently selected  \n");
             }
         }
-        else if ( strncmp(event->topic, "remote_selector_1/B", strlen("remote_selector_1/B")) == 0) {
+        else if ( strncmp(event->topic, "remote_selector_5/B", strlen("remote_selector_5/B")) == 0) {
             if ((strncmp(event->data, "on", 2) == 0) && Antenna ==1)
             {
                 ESP_LOGI(TAG, "Antenna B is already selected");
-//                esp_mqtt_client_publish(client, "remote_selector_1/B", "off", 0, 0, 0);
+//                esp_mqtt_client_publish(client, "remote_selector_5/B", "off", 0, 0, 0);
             }
             else if ((strncmp(event->data, "on", 2) == 0) && Antenna ==0)
             {
                 Antenna = 1;
                 gpio_set_level(GPIO_PIN_RELAY, 1);
-                esp_mqtt_client_publish(client, "remote_selector_1/A", "off", 0, 0, 0);
+                esp_mqtt_client_publish(client, "remote_selector_5/A", "off", 0, 0, 0);
                 ESP_LOGI(TAG, "B is currently selected  \n");
             }
         }
@@ -265,12 +266,12 @@ void vTaskPeriodic(void *pvParameters)
         if (client == NULL) continue;
         if (beacon_status == 0) {
             beacon_status = 1;
-            esp_mqtt_client_publish(client, "remote_selector_1/selected_Beacon", "on", 0, 0, 0);
+            esp_mqtt_client_publish(client, "remote_selector_5/selected_Beacon", "on", 0, 0, 0);
 
         }
         else {
             beacon_status = 0;
-            esp_mqtt_client_publish(client, "remote_selector_1/selected_Beacon", "off", 0, 0, 0);
+            esp_mqtt_client_publish(client, "remote_selector_5/selected_Beacon", "off", 0, 0, 0);
         }
         vTaskDelay(pdMS_TO_TICKS(1000));
     }
